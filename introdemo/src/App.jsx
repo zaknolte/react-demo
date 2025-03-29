@@ -13,11 +13,23 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
+
   useEffect(() => {
-    phonebookAPI.getAll()
-      .then(allPeople => {
-        setPersons(allPeople)
-      })
+    const getPeople = async () => {
+      const allPeople = await phonebookAPI.getAll()
+      setPersons(allPeople)
+    }
+    getPeople()
+  }, [])
+
+  useEffect(() => {
+    // get user credentials from local storage if already logged in
+    const loggedUserJSON = window.localStorage.getItem('loggedUser')
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON)
+      setUser(user)
+      phonebookAPI.setToken(user.token)
+    }
   }, [])
 
   const loginForm = () => {
@@ -50,6 +62,9 @@ const App = () => {
     event.preventDefault()
     try {
       const user = await loginAPI.login({ username, password })
+      // store credentials in local storage to remain on browser refresh
+      window.localStorage.setItem('loggedUser', JSON.stringify(user))
+      phonebookAPI.setToken(user.token)
       setUser(user)
       setUsername('')
       setPassword('')
@@ -59,24 +74,34 @@ const App = () => {
     }
   }
 
-  const postPerson = (e) => {
+  const handleLogout = () => {
+    try {
+      setUser(null)
+      window.localStorage.removeItem('loggedUser')
+      setUsername('')
+      setPassword('')
+    } catch (exception) {
+      setMessage('Not logged in')
+      setTimeout(() => { setMessage(null) }, 5000)
+    }
+  }
+
+  const postPerson = async (e) => {
     e.preventDefault()
-    const newPerson = persons.find((i) => i.name === newName)
+    let newPerson = persons.find((i) => i.name === newName)
     if (newPerson) {
       if (window.confirm(`${newName} already exists. Would you like to update the number?`)) {
-        phonebookAPI.put(newPerson.id, { ...newPerson, number: newNumber })
-          .then(newPerson => setPersons(persons.map(person => person.id === newPerson.id ? newPerson : person)))
+        newPerson = await phonebookAPI.put(newPerson.id, { ...newPerson, number: newNumber })
+        setPersons(persons.map(person => person.id === newPerson.id ? newPerson : person))
       }
     } else {
-      phonebookAPI.post(
+      newPerson = await phonebookAPI.post(
         {
           name: newName,
           number: newNumber
         }
       )
-        .then(newPerson => {
-          setPersons(persons.concat(newPerson))
-        })
+      setPersons(persons.concat(newPerson))
       setMessage(`${newName} added to phonebook!`)
       setTimeout(() => setMessage(null), 3000)
       setNewName('')
@@ -84,16 +109,17 @@ const App = () => {
     }
   }
 
-  const deletePerson = (id) => {
+  const deletePerson = async (id) => {
     const deletedPerson = persons.find(person => person.id === id)
     if (window.confirm(`Are you sure you want to delete ${deletedPerson.name}?`)) {
-      phonebookAPI.del(id)
-        .then(
-          setPersons(persons.filter(person => person.id !== id))
-        ).catch((error) => {
-          setMessage(`${deletedPerson.name} may have already been deleted. Try refreshing your browser.`)
-          setTimeout(() => setMessage(null), 5000)
-        })
+      try {
+        const resp = await phonebookAPI.del(id)
+        setPersons(persons.filter(person => person.id !== id))
+      } catch (error) {
+        setMessage(`${deletedPerson.name} may have already been deleted. Try refreshing your browser.`)
+        setTimeout(() => setMessage(null), 5000)
+
+      }
     }
   }
 
@@ -108,12 +134,12 @@ const App = () => {
         <div>
           <p>{user.name} logged-in</p>
           {noteForm()}
+          <button onClick={handleLogout}>Logout</button>
+          <h2>Numbers</h2>
+          {persons.map((person => <Person key={person.id} person={person} onClick={() => deletePerson(person.id)} />))}
         </div>
       }
 
-      <h2>Numbers</h2>
-
-      {persons.map((person => <Person key={person.id} person={person} onClick={() => deletePerson(person.id)} />))}
     </div>
   )
 }
