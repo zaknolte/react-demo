@@ -4,6 +4,7 @@ import loginAPI from './api/login'
 import Person from './components/person'
 import Message from './components/message'
 import LoginForm from './components/loginForm'
+import PhoneForm from './components/phoneForm'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -32,16 +33,6 @@ const App = () => {
       phonebookAPI.setToken(user.token)
     }
   }, [])
-
-  const noteForm = () => {
-    return (
-      <form onSubmit={postPerson}>
-        <div>name: <input value={newName} onChange={(e) => setNewName(e.target.value)} /></div>
-        <div>number: <input type='tel' value={newNumber} onChange={(e) => setNewNumber(e.target.value)} /></div>
-        <div><button type="submit">add</button></div>
-      </form>
-    )
-  }
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -118,7 +109,7 @@ const App = () => {
         <LoginForm onSubmit={handleLogin} setusername={(e) => setUsername(e.target.value)} setpassword={(e) => setPassword(e.target.value)} /> :
         <div>
           <p>{user.name} logged-in</p>
-          {noteForm()}
+          <PhoneForm onSubmit={postPerson} setnewname={(e) => setNewName(e.target.value)} setnewnumber={(e) => setNewNumber(e.target.value)} />
           <button onClick={handleLogout}>Logout</button>
           <h2>Numbers</h2>
           {persons.map((person => <Person key={person.id} person={person} onClick={() => deletePerson(person.id)} />))}
