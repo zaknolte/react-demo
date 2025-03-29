@@ -1,30 +1,38 @@
 import axios from 'axios'
 
 const baseUrl = 'http://localhost:3001/api'
+let token = null
 
-const getAll = () => {
-    const req = axios.get(`${baseUrl}/people`)
-    return req.then(response => response.data)
+const setToken = (newToken) => {
+    token = `Bearer ${newToken}`
 }
 
-const getOne = (id) => {
-    const req = axios.get(`${baseUrl}/people/${id}`)
-    return req.then(response => response.data)
+const getAll = async () => {
+    const response = await axios.get(`${baseUrl}/people`)
+    return response.data
 }
 
-const post = (newData) => {
-    const req = axios.post(`${baseUrl}/people`, newData)
-    return req.then(response => response.data)
+const getOne = async (id) => {
+    const response = await axios.get(`${baseUrl}/people/${id}`)
+    return response.data
 }
 
-const put = (id, newData) => {
-    const req = axios.put(`${baseUrl}/people/${id}`, newData)
-    return req.then(response => response.data)
+const post = async (newData) => {
+    const config = {
+        headers: { Authorization: token },
+    }
+    const response = await axios.post(`${baseUrl}/people`, newData, config)
+    return response.data
 }
 
-const del = (id) => {
-    const req = axios.delete(`${baseUrl}/people/${id}`)
-    return req.then(response => response.data)
+const put = async (id, newData) => {
+    const response = await axios.put(`${baseUrl}/people/${id}`, newData)
+    return response.data
 }
 
-export default { getAll, getOne, post, put, del }
+const del = async (id) => {
+    const response = await axios.delete(`${baseUrl}/people/${id}`)
+    return response.data
+}
+
+export default { setToken, getAll, getOne, post, put, del }
