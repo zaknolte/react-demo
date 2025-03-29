@@ -3,6 +3,7 @@ import phonebookAPI from './api/phonebook'
 import loginAPI from './api/login'
 import Person from './components/person'
 import Message from './components/message'
+import LoginForm from './components/loginForm'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -31,22 +32,6 @@ const App = () => {
       phonebookAPI.setToken(user.token)
     }
   }, [])
-
-  const loginForm = () => {
-    return (
-      <form onSubmit={handleLogin}>
-        <div>
-          username
-          <input type="text" value={username} name="Username" onChange={(e) => setUsername(e.target.value)} />
-        </div>
-        <div>
-          password
-          <input type="password" value={password} name="Password" onChange={(e) => setPassword(e.target.value)} />
-        </div>
-        <button type="submit">login</button>
-      </form>
-    )
-  }
 
   const noteForm = () => {
     return (
@@ -130,7 +115,7 @@ const App = () => {
       {message ? <Message message={message} /> : <div></div>}
 
       {user === null ?
-        loginForm() :
+        <LoginForm onSubmit={handleLogin} setusername={(e) => setUsername(e.target.value)} setpassword={(e) => setPassword(e.target.value)} /> :
         <div>
           <p>{user.name} logged-in</p>
           {noteForm()}
