@@ -8,13 +8,8 @@ import PhoneForm from './components/phoneForm'
 
 const App = () => {
   const [persons, setPersons] = useState([])
-  const [newName, setNewName] = useState('')
-  const [newNumber, setNewNumber] = useState('')
   const [message, setMessage] = useState(null)
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
-
 
   useEffect(() => {
     const getPeople = async () => {
@@ -34,16 +29,13 @@ const App = () => {
     }
   }, [])
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
+  const handleLogin = async (username, password) => {
     try {
       const user = await loginAPI.login({ username, password })
       // store credentials in local storage to remain on browser refresh
       window.localStorage.setItem('loggedUser', JSON.stringify(user))
       phonebookAPI.setToken(user.token)
       setUser(user)
-      setUsername('')
-      setPassword('')
     } catch (exception) {
       setMessage('Wrong credentials')
       setTimeout(() => { setMessage(null) }, 5000)
@@ -51,18 +43,11 @@ const App = () => {
   }
 
   const handleLogout = () => {
-    try {
-      setUser(null)
-      window.localStorage.removeItem('loggedUser')
-      setUsername('')
-      setPassword('')
-    } catch (exception) {
-      setMessage('Not logged in')
-      setTimeout(() => { setMessage(null) }, 5000)
-    }
+    setUser(null)
+    window.localStorage.removeItem('loggedUser')
   }
 
-  const postPerson = async (e) => {
+  const postPerson = async (newNumber, newName) => {
     e.preventDefault()
     let newPerson = persons.find((i) => i.name === newName)
     if (newPerson) {
@@ -80,8 +65,6 @@ const App = () => {
       setPersons(persons.concat(newPerson))
       setMessage(`${newName} added to phonebook!`)
       setTimeout(() => setMessage(null), 3000)
-      setNewName('')
-      setNewNumber('')
     }
   }
 
@@ -106,22 +89,10 @@ const App = () => {
       {message ? <Message message={message} /> : <div></div>}
 
       {user === null ?
-        <LoginForm
-          handleLogin={handleLogin}
-          username={username}
-          setusername={(e) => setUsername(e.target.value)}
-          password={password}
-          setpassword={(e) => setPassword(e.target.value)}
-        /> :
+        <LoginForm loginUser={handleLogin} /> :
         <div>
           <p>{user.name} logged-in</p>
-          <PhoneForm
-            handleSubmit={postPerson}
-            name={newName}
-            setname={(e) => setNewName(e.target.value)}
-            number={newNumber}
-            setnumber={(e) => setNewNumber(e.target.value)}
-          />
+          <PhoneForm addPerson={postPerson} />
           <button onClick={handleLogout}>Logout</button>
           <h2>Numbers</h2>
           {persons.map((person => <Person key={person.id} person={person} onClick={() => deletePerson(person.id)} />))}
