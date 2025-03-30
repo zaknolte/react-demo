@@ -106,10 +106,22 @@ const App = () => {
       {message ? <Message message={message} /> : <div></div>}
 
       {user === null ?
-        <LoginForm onSubmit={handleLogin} setusername={(e) => setUsername(e.target.value)} setpassword={(e) => setPassword(e.target.value)} /> :
+        <LoginForm
+          handleLogin={handleLogin}
+          username={username}
+          setusername={(e) => setUsername(e.target.value)}
+          password={password}
+          setpassword={(e) => setPassword(e.target.value)}
+        /> :
         <div>
           <p>{user.name} logged-in</p>
-          <PhoneForm onSubmit={postPerson} setnewname={(e) => setNewName(e.target.value)} setnewnumber={(e) => setNewNumber(e.target.value)} />
+          <PhoneForm
+            handleSubmit={postPerson}
+            name={newName}
+            setname={(e) => setNewName(e.target.value)}
+            number={newNumber}
+            setnumber={(e) => setNewNumber(e.target.value)}
+          />
           <button onClick={handleLogout}>Logout</button>
           <h2>Numbers</h2>
           {persons.map((person => <Person key={person.id} person={person} onClick={() => deletePerson(person.id)} />))}
